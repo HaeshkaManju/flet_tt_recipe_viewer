@@ -98,11 +98,10 @@ class SearchView(ft.UserControl):
             individual button's and input fields as arguments.
         '''
     def button_recipe_search(self, e):
-        # I genuinely do not understand how these buttons work or how the 
-        # values are getting updated.
         self.user_recipe_search_label.value = self.user_recipe_input.value
         print(self.user_recipe_search_label.value)
         self.update()
+        db_calls.search_recipes_by_name(self.user_recipe_input.value)
 
     def button_type_search(self, e):
         self.user_type_search_label.value = self.user_type_input.value
