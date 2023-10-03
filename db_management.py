@@ -1,4 +1,3 @@
-import sqlite3
 from sqlalchemy import create_engine, ForeignKey, Table, Column, String, Integer, CHAR
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, backref

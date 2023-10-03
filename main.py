@@ -1,7 +1,6 @@
 # Main
 import flet as ft
 from searchview import SearchView
-import db_calls
 
 def main(page: ft.Page):
     page.title = "Meal Planner"
