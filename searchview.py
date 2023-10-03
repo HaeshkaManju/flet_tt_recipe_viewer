@@ -1,5 +1,5 @@
 import flet as ft
-from db_management import a
+import db_calls
 
 class SearchView(ft.UserControl):
     def build(self):
@@ -21,7 +21,7 @@ class SearchView(ft.UserControl):
         # Type Search Controls #
         ########################
         self.user_type_search_label = ft.Text()
-        self.user_type_input = ft.Dropdown(value="", label="Type", hint_text="Select a Type from the list", options=[ft.dropdown.Option(x) for x in a], autofocus=False)
+        self.user_type_input = ft.Dropdown(value="", label="Type", hint_text="Select a Type from the list", options=[ft.dropdown.Option(x) for x in db_calls.call_types()], autofocus=False)
         type_search_button = ft.ElevatedButton(text="Submit", on_click=self.button_type_search)
         ###############################
         # Ingredients Search Controls #

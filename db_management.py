@@ -149,16 +149,14 @@ session = Session()
 # Testing #
 ### BEGIN SECTION ###
 ##############################################################################
-
-
+'''
 def testing():
     results = session.query(Recipe).all()
     for r in results:
         print(r)
 
-
 testing()
-
+'''
 ##############################################################################
 ### END OF SECTION ###
 # Testing #
