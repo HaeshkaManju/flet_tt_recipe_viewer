@@ -9,3 +9,9 @@ def call_types():
     for r in results:
         print(r)
     return results
+
+def search_recipes_by_name(search_text):
+    results = session.query(Recipe).filter(Recipe.name.like(f'%{search_text}%')).all()
+    for r in results:
+        print(r)
+    return results

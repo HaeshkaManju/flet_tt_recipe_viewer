@@ -103,6 +103,7 @@ class SearchView(ft.UserControl):
         self.user_recipe_search_label.value = self.user_recipe_input.value
         print(self.user_recipe_search_label.value)
         self.update()
+        db_calls.search_recipes_by_name(self.user_recipe_input.value)
 
     def button_type_search(self, e):
         self.user_type_search_label.value = self.user_type_input.value
