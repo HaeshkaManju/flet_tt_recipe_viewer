@@ -1,116 +1,166 @@
-# db_management.py
 import sqlite3
-import db_calls
+from sqlalchemy import create_engine, ForeignKey, Table, Column, String, Integer, CHAR
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship, backref
 
-########################################################################################
+
+Base = declarative_base()
+
+DB_LOC = """F:\Github\\flet_tt_recipe_viewer\\recipes.db"""
+
+##############################################################################
 ### BEGIN SECTION ###
-# Conection Helper Functions #
+# XREF #
 ### BEGIN SECTION ###
-########################################################################################
-DB_LOC = "recipes.db"
-def helper_connection():
-    '''
-    Helper function to shortcut the other code.  Just import this
-    into every other usage where we ask to look at the database.
-    '''
-    conn = sqlite3.connect(DB_LOC)
-    curs = conn.cursor()
-    return conn, curs
+##############################################################################
 
-def conn_to_db(query_string):
-    '''
-        Use this as your baseline for connecting to the database.
-    '''
-    conn, curs = helper_connection()
-    res = curs.execute(query_string)
-    unprocessed_results = res.fetchall()
-    conn.close()
-    return unprocessed_results
+recipes_types = Table("recipes_types_XREF", 
+                         Base.metadata, 
+                         Column("recipe_id", Integer, ForeignKey("recipes.id")),
+                         Column("type_id", Integer, ForeignKey("types.id")), 
+                         )
 
-def tuple_to_list(x):
-    '''
-    The Database is going to return a list from the individual tuples.
-    Use whenever we need to have a list of lists from our DB calls.
-    '''
-    if type(x) == tuple:
-        return list(x)
-    elif type(x) == str:
-        return [x]
-    return "something derpy happened."
+recipes_ingredients = Table("recipes_ingredients_XREF", 
+                         Base.metadata, 
+                         Column("recipe_id", Integer, ForeignKey("recipes.id")),
+                         Column("ingredient_id", Integer, ForeignKey("ingredients.id")), 
+                         )
 
-########################################################################################
-### END OF SECTION ###
-# Conection Helper Functions #
-### END OF SECTION ###
-########################################################################################
+##############################################################################
+### END SECTION ###
+# XREF #
+### END SECTION ###
+##############################################################################
 
-########################################################################################
+##############################################################################
 ### BEGIN SECTION ###
-# Cleaning our data from a query.
+# Type Class Definition #
 ### BEGIN SECTION ###
-########################################################################################
+##############################################################################
+class Type(Base):
+    __tablename__ ='types'
 
-def first_pass(unprocessed_results):
-    print(unprocessed_results)
-    # convert from a tuple surrounding a list to a list surrounding a list.
-    ## In some instances we may be fine with processing the nested lists.
-    ### Harder to do with tuples.  Or, more accurately: we can use the same code
-    #### functions for lists.
-    first_pass_processing_results = [tuple_to_list(x) for x in unprocessed_results]
-    # 
-    print("Results of first pass: ")
-    print(first_pass_processing_results)
-    # Strip away the lists.
-    return first_pass_processing_results
+    id = Column('id', Integer, primary_key = True)
+    type = Column('type', String)
+    recipes = relationship('Recipe', secondary=recipes_types, back_populates='type')
 
-def second_pass(first_pass_results):
-    '''
-        Use this function to clean the lists when you only have one ROW result.
-    '''
-    print("Prepping for second pass, our data is: ")
-    print(first_pass_results)
-    for row in first_pass_results:
-        processed_strings = [str(r) for r in row]
-        print(", ".join(processed_strings))
-    return processed_strings
+    def __repr__(self):
+        return f"Type(id={self.id}, type={self.type})"
+    
+    def __str__(self):
+        return f"{self.type}"
 
-def second_pass_multiline(first_pass_results):
-    '''
-        Use this function to clean the lists when you only have multiple ROW results.
-    '''
-    print("our first pass results were: ")
-    print(first_pass_results)
-    i = 0
-    processed_list = []
-    while i < len(first_pass_results):
-        print(first_pass_results[i])
-        processed_list.append(first_pass_results[i][1])
-        i+=1
-    return processed_list
-
-def second_pass_types(first_pass_results):
-    '''
-        Use this function to clean the lists when you only have multiple ROW results.
-            Specifically for the TYPES table.  We only process a single column,
-            so this function essentially grabs "X by 1" instead of "X by Y".
-    '''
-    print("our first pass results were: ")
-    print(first_pass_results)
-    i = 0
-    processed_list = []
-    while i < len(first_pass_results):
-        print(first_pass_results[i])
-        processed_list.append(first_pass_results[i][0])
-        i+=1
-    return processed_list
-
-########################################################################################
+##############################################################################
 ### END OF SECTION ###
-# Cleaning our data from a query.
+# Type Class Definition #
 ### END OF SECTION ###
-########################################################################################
-u = conn_to_db(db_calls.type_query_string)
-a = first_pass(u)
-print(a)
-a = second_pass_types(a)
-print(a)
+##############################################################################
+
+##############################################################################
+### BEGIN SECTION ###
+# Ingredient Class Definition #
+### BEGIN SECTION ###
+##############################################################################
+class Ingredient(Base):
+    __tablename__ ='ingredients'
+
+    id = Column('id', Integer, primary_key = True)
+    ingredient = Column('ingredient', String)
+    store = Column('store', Integer)
+    recipes = relationship('Recipe', secondary=recipes_ingredients, back_populates='ingredients')
+
+    def __repr__(self):
+        return f"Ingredient(id={self.id}, ingredient={self.ingredient}, store={self.store})"
+    
+    def __str__(self):
+        return f"{self.ingredient}"
+
+##############################################################################
+### END OF SECTION ###
+# Ingredient Class Definition #
+### END OF SECTION ###
+##############################################################################
+
+##############################################################################
+### BEGIN SECTION ###
+# Recipe Class Definition #
+### BEGIN SECTION ###
+##############################################################################
+class Recipe(Base):
+    __tablename__ ='recipes'
+
+    recipe_id = Column('id', Integer, primary_key = True)
+    name = Column('name', String)
+    score = Column('score', Integer)
+    image_loc = Column('image_loc', String)
+    link = Column('link', String)
+    type = relationship('Type', secondary=recipes_types, back_populates='recipes')
+    ingredients = relationship('Ingredient', secondary=recipes_ingredients, back_populates='recipes')
+
+    def __repr__(self):
+        return f"Recipe(recipe_id={self.recipe_id}, name={self.name}, score={self.score}, image_loc={self.image_loc}, link={self.link}, type={self.type}, ingredients={self.ingredients})"
+
+    def __str__(self):
+        ingredients = ""
+        for item in self.ingredients:
+            ingredients += "\t"
+            ingredients += str(item)
+            ingredients += "\n"
+        type = ""
+        for item in self.type:
+            type += str(item)
+        string = f"""
+# {self.name} #
+id: {self.recipe_id}
+score: {self.score}
+image_loc: {self.image_loc}
+link: {self.link}
+type: {type}
+ingredients: 
+{ingredients}"""
+        return string
+
+##############################################################################
+### END OF SECTION ###
+# Recipe Class Definition #
+### END OF SECTION ###
+##############################################################################
+
+##############################################################################
+### BEGIN SECTION ###
+# Engine & Session creation #
+### BEGIN SECTION ###
+##############################################################################
+
+engine = create_engine('sqlite:///' + DB_LOC, echo=True)
+Base.metadata.create_all(bind=engine)
+
+Session = sessionmaker(bind=engine)
+session = Session()
+
+##############################################################################
+### END OF SECTION ###
+# Engine & Session creation #
+### END OF SECTION ###
+##############################################################################
+
+##############################################################################
+### BEGIN SECTION ###
+# Testing #
+### BEGIN SECTION ###
+##############################################################################
+
+
+def testing():
+    results = session.query(Recipe).all()
+    for r in results:
+        print(r)
+
+
+testing()
+
+##############################################################################
+### END OF SECTION ###
+# Testing #
+### END OF SECTION ###
+##############################################################################
