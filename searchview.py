@@ -1,6 +1,7 @@
 import flet as ft
 import db_calls
 
+
 class SearchView(ft.UserControl):
     def build(self):
         self.header1 = ft.Text("Search via Recipes, Types, or Ingredients.")
@@ -53,6 +54,10 @@ class SearchView(ft.UserControl):
         ingredients_search_button = ft.ElevatedButton(
             text="Submit", 
             on_click=self.button_ingredients_search
+        )
+        self.require_all_ingredients_switch = ft.Switch(
+            label="Require All Ingredients",   
+            value=False
         )        
         
         ###################
@@ -85,6 +90,12 @@ class SearchView(ft.UserControl):
                         self.user_ingredients_search_label, 
                         self.user_ingredients_input, 
                         ingredients_search_button
+                        
+                    ]
+                ),
+                ft.Row(
+                    controls=[
+                        self.require_all_ingredients_switch
                     ]
                 ) 
             ]
@@ -107,9 +118,19 @@ class SearchView(ft.UserControl):
         self.user_type_search_label.value = self.user_type_input.value
         print(self.user_type_search_label.value)
         self.update()
+        db_calls.search_recipes_by_type(self.user_type_input.value)
 
     def button_ingredients_search(self, e):
-        self.user_ingredients_search_label.value = \
-            self.user_ingredients_input.value
+        ingredients_input = self.user_ingredients_input.value.strip()
+        ingredients_list = []
+        for ingredient in ingredients_input.split("\n"):
+            ingredient = ingredient.strip()
+            if ingredient!= "" and ingredient not in ingredients_list:
+                ingredients_list.append(ingredient)
+        ingredients = "\n".join(ingredients_list)
+        self.user_ingredients_search_label.value = ingredients
+        self.user_ingredients_input.value = ingredients
         print(self.user_ingredients_search_label.value)
         self.update()
+        ingredients_list.sort()
+        db_calls.search_recipes_by_ingredient(ingredients_list, self.require_all_ingredients_switch.value)
