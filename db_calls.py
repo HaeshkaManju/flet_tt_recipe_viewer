@@ -30,7 +30,8 @@ def search_recipes_by_name(search_text):
 
 
 def search_recipes_by_type(search_type):
-    results = session.query(Recipe).filter(Recipe.type_id == search_type).all()
+    type_object = session.query(Type).filter(Type.type == search_type).first()
+    results = [x for x in type_object.recipes]
     for r in results:
         print(r)
     return results
@@ -62,8 +63,12 @@ def search_recipes_by_ingredient(search_ingredients, require_all=False):
         if require_all and item[0] == len(search_ingredients):
             results.append(item[1])
         elif not require_all:
-            results.append(item[1]) 
+            results.append(item[1])
 
     for r in results:
         print(r)
+
     return results
+
+def update_recipe_results(results):
+    recipe_results = results
